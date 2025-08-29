@@ -1,7 +1,6 @@
-// src/controllers/produtoController.js
 const db = require('../db');
 
-// CREATE
+// CREATE - Criar um novo produto
 exports.createProduto = async (req, res) => {
   const { categoria_id, nome, descricao, preco, imagem_url, disponivel } = req.body;
   if (!categoria_id || !nome || !preco) {
@@ -13,6 +12,7 @@ exports.createProduto = async (req, res) => {
     const { rows } = await db.query(sql, values);
     res.status(201).json(rows[0]);
   } catch (error) {
+    console.error('Erro ao criar produto:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
@@ -24,11 +24,12 @@ exports.getProdutosByCategoria = async (req, res) => {
     const { rows } = await db.query('SELECT * FROM produtos WHERE categoria_id = $1 ORDER BY nome ASC', [categoriaId]);
     res.status(200).json(rows);
   } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
 
-// UPDATE
+// UPDATE - Atualizar um produto
 exports.updateProduto = async (req, res) => {
   const { id } = req.params;
   const { categoria_id, nome, descricao, preco, imagem_url, disponivel } = req.body;
@@ -41,11 +42,12 @@ exports.updateProduto = async (req, res) => {
     }
     res.status(200).json(rows[0]);
   } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
 
-// DELETE
+// DELETE - Excluir um produto
 exports.deleteProduto = async (req, res) => {
   const { id } = req.params;
   try {
@@ -55,6 +57,7 @@ exports.deleteProduto = async (req, res) => {
     }
     res.status(204).send();
   } catch (error) {
+    console.error('Erro ao excluir produto:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };

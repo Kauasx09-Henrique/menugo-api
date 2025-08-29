@@ -1,13 +1,12 @@
-// src/controllers/empresaController.js
 const db = require('../db');
 
-// CREATE - Adicionar uma nova empresa (com upload de logo)
+// CREATE - Adicionar uma nova empresa (com upload de logo e sanitização)
 exports.createEmpresa = async (req, res) => {
   // Os dados de texto vêm de req.body
-  const { nome, cnpj, telefone, cep, rua, numero, complemento, bairro, cidade, uf } = req.body;
+  let { nome, cnpj, telefone, cep, rua, numero, complemento, bairro, cidade, uf } = req.body;
 
   // O Multer nos dá o arquivo em req.file. Se ele existir, montamos a URL.
-  let logo_url = null; // Começa como nulo por padrão
+  let logo_url = null;
   if (req.file) {
     logo_url = `http://localhost:3000/uploads/${req.file.filename}`;
   }
@@ -15,6 +14,13 @@ exports.createEmpresa = async (req, res) => {
   if (!nome) {
     return res.status(400).json({ error: 'O campo "nome" é obrigatório.' });
   }
+
+  // --- CORREÇÃO APLICADA AQUI ---
+  // Limpa e garante que o CNPJ não exceda o limite do banco de dados.
+  if (cnpj) {
+    cnpj = cnpj.trim().substring(0, 18);
+  }
+  // --- FIM DA CORREÇÃO ---
 
   try {
     const sql = `
@@ -59,17 +65,21 @@ exports.getEmpresaById = async (req, res) => {
   }
 };
 
-// UPDATE - Atualizar uma empresa (com upload de logo)
+// UPDATE - Atualizar uma empresa (com upload de logo e sanitização)
 exports.updateEmpresa = async (req, res) => {
   const { id } = req.params;
-  const { nome, cnpj, telefone, cep, rua, numero, complemento, bairro, cidade, uf } = req.body;
+  let { nome, cnpj, telefone, logo_url: bodyLogoUrl, cep, rua, numero, complemento, bairro, cidade, uf } = req.body;
 
-  // Começamos com a logo_url que veio do formulário (pode ser a URL antiga)
-  let logo_url = req.body.logo_url;
-  // Se um NOVO arquivo foi enviado na requisição, ele terá prioridade
+  let logo_url = bodyLogoUrl;
   if (req.file) {
     logo_url = `http://localhost:3000/uploads/${req.file.filename}`;
   }
+
+  // --- CORREÇÃO APLICADA AQUI ---
+  if (cnpj) {
+    cnpj = cnpj.trim().substring(0, 18);
+  }
+  // --- FIM DA CORREÇÃO ---
 
   try {
     const sql = `
@@ -97,7 +107,6 @@ exports.updateEmpresa = async (req, res) => {
 exports.deleteEmpresa = async (req, res) => {
   const { id } = req.params;
   try {
-    // Futuramente, aqui poderíamos adicionar a lógica para deletar o arquivo da logo da pasta /uploads
     const result = await db.query('DELETE FROM empresas WHERE id = $1 RETURNING *', [id]);
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Empresa não encontrada para exclusão.' });

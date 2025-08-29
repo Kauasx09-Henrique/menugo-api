@@ -11,4 +11,7 @@ const pool = new Pool({
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
+  // Esta é a função que estava a faltar. Ela permite-nos "alugar" uma conexão
+  // do pool para fazer múltiplas operações numa única transação.
+  getClient: () => pool.connect(),
 };
