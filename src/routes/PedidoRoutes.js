@@ -1,19 +1,20 @@
-
 const express = require('express');
 const router = express.Router();
 const pedidoController = require('../controllers/pedidoController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Rota do Cliente para criar o pedido
+// Rota para o CLIENTE criar um pedido (Pública)
 router.post('/', pedidoController.createPedido);
 
-// Rota do Cliente para ver o status do seu pedido
-router.get('/:id', pedidoController.getPedidoById);
+// Rota para o CLIENTE ver o status do seu pedido (Pública)
+router.get('/:pedidoId', pedidoController.getPedidoById);
 
-// Rota do Admin para ver todos os pedidos de uma empresa
+// --- NOVAS ROTAS PARA O ADMIN (Protegidas) ---
+
+// Rota para o ADMIN listar todos os pedidos de uma empresa
 router.get('/empresa/:empresaId', authMiddleware, pedidoController.getPedidosByEmpresa);
 
-// Rota do Admin para atualizar o status de um pedido
-router.put('/:id/status', authMiddleware, pedidoController.updatePedidoStatus);
+// Rota para o ADMIN atualizar o status de um pedido
+router.put('/:pedidoId/status', authMiddleware, pedidoController.updatePedidoStatus);
 
 module.exports = router;

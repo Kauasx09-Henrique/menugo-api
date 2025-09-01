@@ -63,14 +63,22 @@ exports.getPedidoById = async (req, res) => {
 };
 
 // --- Funções para o Admin ---
-// ... (as suas funções de admin continuam as mesmas)
+
+// ADMIN: Lista todos os pedidos de uma empresa
 exports.getPedidosByEmpresa = async (req, res) => {
   const { empresaId } = req.params;
   try {
     const sql = `
       SELECT * FROM pedidos 
       WHERE empresa_id = $1 
-      ORDER BY criado_em DESC
+      ORDER BY 
+        CASE status
+          WHEN 'recebido' THEN 1
+          WHEN 'em_preparo' THEN 2
+          WHEN 'pronto' THEN 3
+          ELSE 4
+        END,
+        criado_em ASC;
     `;
     const { rows } = await db.query(sql, [empresaId]);
     res.status(200).json(rows);
@@ -80,6 +88,7 @@ exports.getPedidosByEmpresa = async (req, res) => {
   }
 };
 
+// ADMIN: Atualiza o status de um pedido
 exports.updatePedidoStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -106,3 +115,4 @@ exports.updatePedidoStatus = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
+
